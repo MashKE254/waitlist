@@ -1,0 +1,9 @@
+{
+  "name": "autoforge-waitlist",
+  "version": "1.0.0",
+  "dependencies": {
+    "google-auth-library": "^10.5.0",
+    "google-spreadsheet": "^4.1.1",
+    "nodemailer": "^6.9.7"
+  }
+}

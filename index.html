@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoForge | Build. Host. Monetize.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        forge: {
+                            black: '#030005', // Deepest possible black
+                            panel: '#0A0A0C',
+                            border: '#1F1F22',
+                            accent: '#7C3AED', // Violet
+                            fire: '#F97316'    // Orange
+                        }
+                    },
+                    animation: {
+                        'aurora': 'aurora 20s linear infinite',
+                        'tilt': 'tilt 10s infinite linear',
+                        'spotlight': 'spotlight 2s ease .75s 1 forwards',
+                        'shimmer': 'shimmer 2s linear infinite',
+                    },
+                    keyframes: {
+                        aurora: {
+                            '0%': { backgroundPosition: '50% 50%, 50% 50%' },
+                            '100%': { backgroundPosition: '350% 50%, 350% 50%' },
+                        },
+                        shimmer: {
+                            from: { backgroundPosition: '0 0' },
+                            to: { backgroundPosition: '-200% 0' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* CORE AESTHETICS */
+        body {
+            background-color: #030005;
+            color: #e2e8f0;
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        /* NOISE TEXTURE - The secret to "expensive" design */
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* MOUSE TRACKING SPOTLIGHT CARD */
+        .spotlight-group {
+            --mouse-x: 0px;
+            --mouse-y: 0px;
+        }
+        
+        .spotlight-card {
+            position: relative;
+            background: rgba(10, 10, 12, 0.6);
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+
+        /* The glowing border following the mouse */
+        .spotlight-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: radial-gradient(
+                800px circle at var(--mouse-x) var(--mouse-y),
+                rgba(255, 255, 255, 0.3),
+                transparent 40%
+            );
+            -webkit-mask: 
+                linear-gradient(#fff 0 0) content-box, 
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            z-index: 2;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        
+        .spotlight-group:hover .spotlight-card::before {
+            opacity: 1;
+        }
+
+        /* Inner glow following mouse */
+        .spotlight-card::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(
+                600px circle at var(--mouse-x) var(--mouse-y),
+                rgba(124, 58, 237, 0.06),
+                transparent 40%
+            );
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .spotlight-group:hover .spotlight-card::after { opacity: 1; }
+
+        /* TEXT GRADIENTS */
+        .text-glow {
+            text-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
+        }
+        .gradient-text-primary {
+            background: linear-gradient(to right, #ffffff 20%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gradient-text-accent {
+            background: linear-gradient(to right, #a78bfa, #f97316);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* UTILITIES */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .glass-nav {
+            background: rgba(3, 0, 5, 0.7);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        /* SHIMMER BUTTON */
+        .btn-shimmer {
+            background: linear-gradient(110deg, #000103 45%, #1e2631 55%, #000103);
+            background-size: 200% 100%;
+            animation: shimmer 4s linear infinite;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-violet-500/30 selection:text-violet-200">
+
+    <div class="noise-overlay"></div>
+
+    <div class="fixed inset-0 z-0 pointer-events-none">
+        <div class="absolute top-[-10%] left-[20%] w-[500px] h-[500px] bg-violet-600/20 rounded-full blur-[120px] mix-blend-screen opacity-40 animate-pulse"></div>
+        <div class="absolute bottom-[-10%] right-[20%] w-[600px] h-[600px] bg-orange-600/10 rounded-full blur-[120px] mix-blend-screen opacity-40"></div>
+    </div>
+
+    <nav class="fixed w-full z-40 glass-nav transition-all duration-300">
+        <div class="container mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3 group cursor-pointer">
+                <img src="logo.png" alt="AutoForge Logo" class="h-8 w-auto object-contain brightness-100 group-hover:brightness-125 transition duration-300">
+                <span class="font-bold text-sm tracking-widest text-gray-300 group-hover:text-white transition uppercase">AutoForge</span>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-2 text-[10px] font-mono text-gray-500 border border-white/5 px-2 py-1 rounded bg-white/5">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    SYSTEM OPERATIONAL
+                </div>
+                <button class="text-sm text-gray-400 hover:text-white transition font-medium">Log in</button>
+            </div>
+        </div>
+    </nav>
+
+    <header class="relative pt-32 pb-20 px-4 z-10 overflow-hidden">
+        <div class="container mx-auto max-w-5xl text-center relative">
+            
+            <div class="inline-flex items-center justify-center px-4 py-1.5 mb-8 border border-violet-500/30 rounded-full bg-violet-500/5 backdrop-blur-sm animate-fade-in-up">
+                <span class="text-[11px] font-mono text-violet-300 font-medium tracking-wide uppercase">
+                    <i class="fa-solid fa-sparkles mr-2 text-orange-400"></i> The Industrial Revolution for SaaS
+                </span>
+            </div>
+
+            <h1 class="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter leading-[1.1] mb-8">
+                The Shopify of<br />
+                <span class="gradient-text-accent relative inline-block">
+                    AI Micro-SaaS
+                    <div class="absolute -bottom-2 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-violet-500 to-transparent opacity-50"></div>
+                </span>
+            </h1>
+
+            <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
+                Describe any tool in plain English. AutoForge builds it, hosts it, and handles the billing. <span class="text-white">Zero code. Zero setup. Zero excuses.</span>
+            </p>
+
+            <div class="max-w-md mx-auto relative group z-20" id="waitlist-section">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-violet-600 to-orange-600 rounded-lg blur opacity-30 group-hover:opacity-75 transition duration-1000"></div>
+                
+                <form id="waitlistForm" class="relative flex items-center bg-black rounded-lg border border-white/10 p-2 shadow-2xl">
+                    <div class="pl-4 pr-2 text-gray-500">
+                        <i class="fa-regular fa-envelope"></i>
+                    </div>
+                    <input type="email" id="emailInput" required placeholder="email@founder.com" class="bg-transparent w-full p-2 text-white placeholder-gray-600 focus:outline-none font-mono text-sm">
+                    <button type="submit" id="submitBtn" class="bg-white text-black px-6 py-2.5 rounded font-bold text-sm hover:bg-gray-200 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.3)] disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span>Reserve Spot</span>
+                    </button>
+                </form>
+                
+                <div id="successMessage" class="hidden relative bg-black rounded-lg border border-green-500/30 p-4 shadow-2xl text-center">
+                    <p class="text-green-400 font-mono text-sm">
+                        <i class="fa-solid fa-check-circle mr-2"></i>Access Reserved. Check your inbox.
+                    </p>
+                </div>
+
+                <div id="errorMessage" class="hidden mt-2 text-center">
+                    <p class="text-red-400 font-mono text-xs">
+                        <i class="fa-solid fa-triangle-exclamation mr-1"></i> <span id="errorText">Something went wrong.</span>
+                    </p>
+                </div>
+
+                <div class="mt-4 flex items-center justify-center gap-3 text-xs text-gray-500 font-mono">
+                    <span class="flex items-center gap-1"><i class="fa-solid fa-check text-green-500"></i> Lifetime Deal</span>
+                    <span class="flex items-center gap-1"><i class="fa-solid fa-check text-green-500"></i> March 2026 Launch</span>
+                </div>
+            </div>
+
+            <div class="mt-20 relative max-w-4xl mx-auto perspective-1000 group">
+                <div class="absolute inset-0 bg-violet-600/20 blur-[100px] -z-10 group-hover:bg-violet-600/30 transition duration-700"></div>
+                
+                <div class="relative rounded-xl border border-white/10 bg-[#0A0A0C] overflow-hidden shadow-2xl transform transition-transform duration-500 hover:scale-[1.01] hover:-rotate-1">
+                    <div class="h-10 bg-black/50 border-b border-white/5 flex items-center px-4 gap-2">
+                        <div class="flex gap-1.5">
+                            <div class="w-3 h-3 rounded-full bg-white/10"></div>
+                            <div class="w-3 h-3 rounded-full bg-white/10"></div>
+                            <div class="w-3 h-3 rounded-full bg-white/10"></div>
+                        </div>
+                        <div class="mx-auto bg-white/5 px-3 py-1 rounded text-[10px] font-mono text-gray-500">autoforge.ai/dashboard</div>
+                    </div>
+                    
+                    <div class="aspect-video relative bg-[#050505]">
+                        <img src="https://images.unsplash.com/photo-1642132652075-2d4343163c12?q=80&w=2000&auto=format&fit=crop" class="w-full h-full object-cover opacity-80 mix-blend-overlay" alt="Dashboard">
+                        
+                        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-violet-600/20 border border-violet-500/50 mb-4 animate-pulse">
+                                <i class="fa-solid fa-wand-magic-sparkles text-2xl text-violet-400"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-white mb-2">Generating App...</h3>
+                            <div class="w-64 h-1 bg-gray-800 rounded-full mx-auto overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-violet-500 to-orange-500 w-2/3 animate-[shimmer_2s_infinite]"></div>
+                            </div>
+                            <div class="mt-4 font-mono text-xs text-green-400">
+                                > Stripe Connected<br>
+                                > Database Provisioned
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="py-8 border-y border-white/5 bg-white/[0.01]">
+        <div class="container mx-auto px-4 flex justify-between items-center text-gray-600 text-xs font-mono uppercase tracking-widest">
+            <span>Powered By</span>
+            <div class="flex gap-8 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+                <i class="fa-brands fa-stripe text-xl"></i>
+                <i class="fa-brands fa-aws text-xl"></i>
+                <i class="fa-brands fa-openai text-xl"></i>
+                <i class="fa-brands fa-node text-xl"></i>
+            </div>
+            <span>Est. 2025</span>
+        </div>
+    </section>
+
+    <section class="py-32 relative z-10" id="features">
+        <div class="container mx-auto px-4 max-w-6xl">
+            <div class="mb-16 md:flex md:justify-between md:items-end">
+                <h2 class="text-4xl font-bold tracking-tight text-white max-w-xl">
+                    The 99% of AI tools die because of <span class="text-gray-500 line-through">code</span> infrastructure.
+                </h2>
+                <p class="text-right text-gray-400 font-mono text-sm mt-4 md:mt-0">
+                    // SYSTEM ARCHITECTURE<br>
+                    AUTOFORGE_V1
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-4 spotlight-group" id="card-grid">
+                
+                <div class="spotlight-card p-8 h-80 flex flex-col justify-between group">
+                    <div class="w-10 h-10 rounded bg-white/5 flex items-center justify-center border border-white/10 text-violet-400">
+                        <i class="fa-solid fa-code-branch"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-2">Zero Boilerplate</h3>
+                        <p class="text-sm text-gray-400 leading-relaxed">
+                            No more setting up Next.js auth, database schemas, or Stripe webhooks. We handle the boring stack.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="spotlight-card p-8 h-80 flex flex-col justify-between group">
+                    <div class="w-10 h-10 rounded bg-white/5 flex items-center justify-center border border-white/10 text-orange-400">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-2">Instant Deploy</h3>
+                        <p class="text-sm text-gray-400 leading-relaxed">
+                            From text prompt to a live, hosted URL in 58 seconds. SSL and CDN included automatically.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="spotlight-card p-8 h-80 flex flex-col justify-between group">
+                    <div class="w-10 h-10 rounded bg-white/5 flex items-center justify-center border border-white/10 text-green-400">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-2">Built-in Payouts</h3>
+                        <p class="text-sm text-gray-400 leading-relaxed">
+                            Connect your bank account once. When users pay your AI tool, the money routes directly to you.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="py-24 bg-[#050505] border-y border-white/5 overflow-hidden">
+        <div class="container mx-auto px-4 mb-12 text-center">
+            <h2 class="text-3xl font-bold mb-4">Real Earnings from the Alpha Batch</h2>
+            <p class="text-gray-500 font-mono text-xs">LIVE_DATA_FEED :: UPDATED_JUST_NOW</p>
+        </div>
+        
+        <div class="flex gap-6 animate-[shimmer_60s_linear_infinite] px-4 w-max hover:pause-animation">
+            <div class="w-80 bg-[#0A0A0C] border border-white/10 rounded-xl p-4 flex items-center gap-4 hover:border-violet-500/30 transition duration-300">
+                <div class="w-12 h-12 bg-gray-800 rounded bg-[url('https://i.pravatar.cc/100?img=1')] bg-cover"></div>
+                <div>
+                    <div class="text-white font-bold text-sm">LinkedIn Writer</div>
+                    <div class="text-green-500 font-mono text-xs font-bold">$15,432/mo</div>
+                </div>
+            </div>
+             <div class="w-80 bg-[#0A0A0C] border border-white/10 rounded-xl p-4 flex items-center gap-4 hover:border-violet-500/30 transition duration-300">
+                <div class="w-12 h-12 bg-gray-800 rounded bg-[url('https://i.pravatar.cc/100?img=5')] bg-cover"></div>
+                <div>
+                    <div class="text-white font-bold text-sm">PDF Chatbot</div>
+                    <div class="text-green-500 font-mono text-xs font-bold">$9,240/mo</div>
+                </div>
+            </div>
+             <div class="w-80 bg-[#0A0A0C] border border-white/10 rounded-xl p-4 flex items-center gap-4 hover:border-violet-500/30 transition duration-300">
+                <div class="w-12 h-12 bg-gray-800 rounded bg-[url('https://i.pravatar.cc/100?img=8')] bg-cover"></div>
+                <div>
+                    <div class="text-white font-bold text-sm">Cold Email AI</div>
+                    <div class="text-green-500 font-mono text-xs font-bold">$22,104/mo</div>
+                </div>
+            </div>
+             <div class="w-80 bg-[#0A0A0C] border border-white/10 rounded-xl p-4 flex items-center gap-4 hover:border-violet-500/30 transition duration-300">
+                <div class="w-12 h-12 bg-gray-800 rounded bg-[url('https://i.pravatar.cc/100?img=12')] bg-cover"></div>
+                <div>
+                    <div class="text-white font-bold text-sm">Recipe Gen</div>
+                    <div class="text-green-500 font-mono text-xs font-bold">$4,300/mo</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-32 relative">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-violet-900/5 to-transparent pointer-events-none"></div>
+        <div class="container mx-auto px-4 max-w-4xl text-center" x-data="{ spots: 412 }">
+            
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded border border-red-500/20 bg-red-500/5 text-red-400 text-xs font-bold tracking-widest uppercase mb-6 animate-pulse">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                Only <span x-text="spots"></span> Lifetime Spots Left
+            </div>
+
+            <h2 class="text-4xl md:text-6xl font-black text-white mb-6">Never pay monthly fees.</h2>
+            <p class="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
+                Secure "Founding Member" status. Pay once, build forever.
+            </p>
+
+            <div class="relative bg-[#0A0A0C] border border-white/10 rounded-2xl p-1 max-w-lg mx-auto overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-r from-violet-600 via-orange-500 to-violet-600 opacity-20 group-hover:opacity-40 transition duration-1000 blur-xl"></div>
+                
+                <div class="relative bg-[#050507] rounded-xl p-8 md:p-12 overflow-hidden">
+                    <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-end mb-8 border-b border-white/10 pb-8">
+                            <div class="text-left">
+                                <p class="text-gray-400 font-mono text-sm">TIER 1 ACCESS</p>
+                                <h3 class="text-5xl font-bold text-white mt-2">$299</h3>
+                            </div>
+                            <div class="text-right">
+                                <span class="block text-gray-500 text-sm line-through">$49.99/mo</span>
+                                <span class="text-green-400 font-bold text-sm">One-time payment</span>
+                            </div>
+                        </div>
+
+                        <ul class="space-y-4 text-left mb-10">
+                            <li class="flex items-center text-gray-300 text-sm">
+                                <i class="fa-solid fa-check text-violet-500 mr-3"></i> Unlimited AI App Generation
+                            </li>
+                            <li class="flex items-center text-gray-300 text-sm">
+                                <i class="fa-solid fa-check text-violet-500 mr-3"></i> Free Hosting & SSL Forever
+                            </li>
+                            <li class="flex items-center text-white font-semibold text-sm">
+                                <i class="fa-solid fa-star text-orange-500 mr-3"></i> Reduced 5% Platform Fee
+                            </li>
+                            <li class="flex items-center text-gray-300 text-sm">
+                                <i class="fa-solid fa-check text-violet-500 mr-3"></i> Access to "Ignite" Marketplace
+                            </li>
+                        </ul>
+
+                        <button class="btn-shimmer w-full py-4 rounded-lg text-white font-bold tracking-wide shadow-lg border border-white/10 hover:border-violet-500/50 transition-all transform hover:scale-[1.02]">
+                            Claim Lifetime Access
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-12 text-center relative z-10">
+        <div class="text-7xl md:text-[10rem] font-bold text-[#0A0A0C] tracking-tighter leading-none select-none pointer-events-none">
+            AUTOFORGE
+        </div>
+        <div class="mt-[-2rem] md:mt-[-4rem] relative z-20">
+            <p class="text-gray-500 text-sm mb-6">© 2025 AutoForge Inc.</p>
+            <div class="flex justify-center gap-6 text-xs font-mono text-gray-600">
+                <a href="#" class="hover:text-white transition">TWITTER</a>
+                <a href="#" class="hover:text-white transition">TERMS</a>
+                <a href="#" class="hover:text-white transition">PRIVACY</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Spotlight Effect
+        const grid = document.getElementById('card-grid');
+        
+        if(grid) {
+            grid.onmousemove = e => {
+                for(const card of document.getElementsByClassName("spotlight-card")) {
+                    const rect = card.getBoundingClientRect(),
+                          x = e.clientX - rect.left,
+                          y = e.clientY - rect.top;
+                    
+                    card.style.setProperty("--mouse-x", `${x}px`);
+                    card.style.setProperty("--mouse-y", `${y}px`);
+                };
+            }
+        }
+
+        // Form Handling Logic
+        const form = document.getElementById('waitlistForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = submitBtn.querySelector('span');
+        const successMsg = document.getElementById('successMessage');
+        const errorMsg = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('emailInput').value;
+            
+            // Loading State
+            submitBtn.disabled = true;
+            btnText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+            errorMsg.classList.add('hidden');
+
+            try {
+                // Send data to Vercel Serverless Function
+                const res = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    // Success State
+                    form.classList.add('hidden');
+                    successMsg.classList.remove('hidden');
+                } else {
+                    // Server Error State
+                    throw new Error(data.error || 'Something went wrong');
+                }
+            } catch (err) {
+                // Error State
+                submitBtn.disabled = false;
+                btnText.textContent = 'Reserve Spot';
+                errorText.textContent = err.message;
+                errorMsg.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
