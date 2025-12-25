@@ -541,6 +541,18 @@
             trackConversion();
         };
 
+        // Check if user just completed a purchase (via URL parameter)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('purchase') === 'success' || urlParams.get('purchased') === 'true') {
+            // User returned from Gumroad after purchase
+            setTimeout(() => {
+                celebratePurchase();
+                trackConversion();
+                // Clean up URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }, 500);
+        }
+
         // Add loading states and track clicks on Gumroad buttons
         document.addEventListener('DOMContentLoaded', () => {
             const gumroadButtons = document.querySelectorAll('.gumroad-button');
