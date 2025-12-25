@@ -138,6 +138,28 @@
             background-size: 200% 100%;
             animation: shimmer 4s linear infinite;
         }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+        }
     </style>
 </head>
 <body class="antialiased selection:bg-violet-500/30 selection:text-violet-200">
@@ -205,8 +227,7 @@
                         <i class="fa-solid fa-check-circle mr-2"></i>You're on the list! Check your inbox.
                     </p>
                     <a href="https://autoforgeworld.gumroad.com/l/naahh"
-                       class="gumroad-button inline-block bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all transform hover:scale-105"
-                       data-gumroad-overlay-checkout="true">
+                       class="gumroad-button inline-block bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all transform hover:scale-105">
                         <i class="fa-solid fa-crown mr-2"></i><span>Claim Lifetime Access ($299)</span>
                     </a>
                 </div>
@@ -227,8 +248,7 @@
             <div class="max-w-md mx-auto text-center">
                 <p class="text-sm text-gray-400 mb-3">Already decided? Skip the waitlist:</p>
                 <a href="https://autoforgeworld.gumroad.com/l/naahh"
-                   class="gumroad-button gumroad-cta-main inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-orange-600 text-white px-8 py-3 rounded-lg font-bold text-sm hover:opacity-90 transition-all transform hover:scale-105 shadow-[0_0_30px_rgba(124,58,237,0.4)]"
-                   data-gumroad-overlay-checkout="true">
+                   class="gumroad-button gumroad-cta-main inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-orange-600 text-white px-8 py-3 rounded-lg font-bold text-sm hover:opacity-90 transition-all transform hover:scale-105 shadow-[0_0_30px_rgba(124,58,237,0.4)]">
                     <i class="fa-solid fa-bolt"></i>
                     <span>Secure Lifetime Access Now - $299</span>
                     <i class="fa-solid fa-arrow-right"></i>
@@ -424,8 +444,7 @@
                         </ul>
 
                         <a href="https://autoforgeworld.gumroad.com/l/naahh"
-                           class="gumroad-button gumroad-cta-pricing block btn-shimmer w-full py-4 rounded-lg text-white font-bold tracking-wide shadow-lg border border-white/10 hover:border-violet-500/50 transition-all transform hover:scale-[1.02] text-center"
-                           data-gumroad-overlay-checkout="true">
+                           class="gumroad-button gumroad-cta-pricing block btn-shimmer w-full py-4 rounded-lg text-white font-bold tracking-wide shadow-lg border border-white/10 hover:border-violet-500/50 transition-all transform hover:scale-[1.02] text-center">
                             <span>Claim Lifetime Access</span>
                         </a>
                     </div>
@@ -512,43 +531,53 @@
         // GUMROAD OVERLAY ENHANCEMENTS
         // ====================================
 
-        // Add loading states to all Gumroad buttons
+        // Gumroad overlay callback - fires on successful purchase
+        window.GumroadOverlayCallback = function() {
+            console.log('🎉 Purchase completed!');
+            celebratePurchase();
+            trackConversion();
+        };
+
+        // Initialize Gumroad overlay on all buttons
         document.addEventListener('DOMContentLoaded', () => {
             const gumroadButtons = document.querySelectorAll('.gumroad-button');
 
             gumroadButtons.forEach(button => {
                 button.addEventListener('click', function(e) {
-                    const span = this.querySelector('span');
-                    if (span) {
-                        const originalText = span.textContent;
-                        span.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Loading checkout...';
+                    e.preventDefault(); // Prevent default link behavior
 
-                        // Reset after 3 seconds if overlay doesn't load
-                        setTimeout(() => {
-                            span.textContent = originalText;
-                        }, 3000);
+                    const span = this.querySelector('span');
+                    let originalText = '';
+
+                    if (span) {
+                        originalText = span.textContent;
+                        span.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Loading checkout...';
                     }
+
+                    // Extract product ID from URL (naahh from the link)
+                    const productUrl = this.getAttribute('href');
+
+                    // Open Gumroad overlay programmatically
+                    if (window.GumroadOverlay) {
+                        window.GumroadOverlay.open({
+                            url: productUrl,
+                            wanted: true
+                        });
+                    } else {
+                        // Fallback: If overlay isn't available, open in new tab
+                        console.warn('Gumroad overlay not available, opening in new window');
+                        window.open(productUrl, '_blank');
+                    }
+
+                    // Reset button text after overlay opens
+                    setTimeout(() => {
+                        if (span) {
+                            span.textContent = originalText;
+                        }
+                    }, 2000);
                 });
             });
         });
-
-        // Gumroad Overlay Event Tracking
-        if (window.createGumroadOverlay) {
-            // Listen for successful purchases
-            window.addEventListener('message', (event) => {
-                // Gumroad sends postMessage events
-                if (event.data && event.data.name === 'gumroad_overlay_close') {
-                    console.log('Gumroad overlay closed');
-                }
-            });
-        }
-
-        // Alternative: Use Gumroad's global callback (if they complete purchase)
-        window.GumroadOverlayCallback = function() {
-            // This fires after successful purchase
-            celebratePurchase();
-            trackConversion();
-        };
 
         // Confetti celebration function
         function celebratePurchase() {
@@ -585,9 +614,38 @@
                 });
             }, 250);
 
-            // Show success message
+            // Show success message with a custom styled notification
             setTimeout(() => {
-                alert('🎉 Welcome to AutoForge, Founding Member! Check your email for next steps.');
+                // Create custom success notification
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: linear-gradient(135deg, #7C3AED 0%, #F97316 100%);
+                    color: white;
+                    padding: 40px 60px;
+                    border-radius: 20px;
+                    box-shadow: 0 20px 60px rgba(124, 58, 237, 0.5);
+                    z-index: 10000;
+                    text-align: center;
+                    font-family: 'Inter', sans-serif;
+                    animation: slideIn 0.5s ease-out;
+                `;
+                notification.innerHTML = `
+                    <div style="font-size: 60px; margin-bottom: 20px;">🎉</div>
+                    <h2 style="font-size: 28px; font-weight: bold; margin-bottom: 10px;">Welcome, Founding Member!</h2>
+                    <p style="font-size: 16px; opacity: 0.9;">Check your email for next steps</p>
+                `;
+
+                document.body.appendChild(notification);
+
+                // Remove notification after 4 seconds
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.5s ease-in';
+                    setTimeout(() => notification.remove(), 500);
+                }, 4000);
             }, 1500);
         }
 
