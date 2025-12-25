@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://gumroad.com/js/gumroad.js"></script>
 
+    <!-- Canvas Confetti for celebrations -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -201,8 +204,10 @@
                     <p class="text-green-400 font-mono text-sm mb-3">
                         <i class="fa-solid fa-check-circle mr-2"></i>You're on the list! Check your inbox.
                     </p>
-                    <a href="https://autoforgeworld.gumroad.com/l/naahh" class="gumroad-button inline-block bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all transform hover:scale-105">
-                        <i class="fa-solid fa-crown mr-2"></i>Claim Lifetime Access ($299)
+                    <a href="https://autoforgeworld.gumroad.com/l/naahh"
+                       class="gumroad-button inline-block bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all transform hover:scale-105"
+                       data-gumroad-overlay-checkout="true">
+                        <i class="fa-solid fa-crown mr-2"></i><span>Claim Lifetime Access ($299)</span>
                     </a>
                 </div>
 
@@ -221,9 +226,11 @@
             <!-- Direct Purchase Option -->
             <div class="max-w-md mx-auto text-center">
                 <p class="text-sm text-gray-400 mb-3">Already decided? Skip the waitlist:</p>
-                <a href="https://autoforgeworld.gumroad.com/l/naahh" class="gumroad-button inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-orange-600 text-white px-8 py-3 rounded-lg font-bold text-sm hover:opacity-90 transition-all transform hover:scale-105 shadow-[0_0_30px_rgba(124,58,237,0.4)]">
+                <a href="https://autoforgeworld.gumroad.com/l/naahh"
+                   class="gumroad-button gumroad-cta-main inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-orange-600 text-white px-8 py-3 rounded-lg font-bold text-sm hover:opacity-90 transition-all transform hover:scale-105 shadow-[0_0_30px_rgba(124,58,237,0.4)]"
+                   data-gumroad-overlay-checkout="true">
                     <i class="fa-solid fa-bolt"></i>
-                    Secure Lifetime Access Now - $299
+                    <span>Secure Lifetime Access Now - $299</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </a>
                 <p class="text-xs text-gray-500 mt-2 font-mono">⚡ Limited to 412 founding members</p>
@@ -416,8 +423,10 @@
                             </li>
                         </ul>
 
-                        <a href="https://autoforgeworld.gumroad.com/l/naahh" class="gumroad-button block btn-shimmer w-full py-4 rounded-lg text-white font-bold tracking-wide shadow-lg border border-white/10 hover:border-violet-500/50 transition-all transform hover:scale-[1.02] text-center">
-                            Claim Lifetime Access
+                        <a href="https://autoforgeworld.gumroad.com/l/naahh"
+                           class="gumroad-button gumroad-cta-pricing block btn-shimmer w-full py-4 rounded-lg text-white font-bold tracking-wide shadow-lg border border-white/10 hover:border-violet-500/50 transition-all transform hover:scale-[1.02] text-center"
+                           data-gumroad-overlay-checkout="true">
+                            <span>Claim Lifetime Access</span>
                         </a>
                     </div>
                 </div>
@@ -468,7 +477,7 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('emailInput').value;
-            
+
             submitBtn.disabled = true;
             btnText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
             errorMsg.classList.add('hidden');
@@ -497,6 +506,134 @@
                 errorText.textContent = err.message;
                 errorMsg.classList.remove('hidden');
             }
+        });
+
+        // ====================================
+        // GUMROAD OVERLAY ENHANCEMENTS
+        // ====================================
+
+        // Add loading states to all Gumroad buttons
+        document.addEventListener('DOMContentLoaded', () => {
+            const gumroadButtons = document.querySelectorAll('.gumroad-button');
+
+            gumroadButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const span = this.querySelector('span');
+                    if (span) {
+                        const originalText = span.textContent;
+                        span.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Loading checkout...';
+
+                        // Reset after 3 seconds if overlay doesn't load
+                        setTimeout(() => {
+                            span.textContent = originalText;
+                        }, 3000);
+                    }
+                });
+            });
+        });
+
+        // Gumroad Overlay Event Tracking
+        if (window.createGumroadOverlay) {
+            // Listen for successful purchases
+            window.addEventListener('message', (event) => {
+                // Gumroad sends postMessage events
+                if (event.data && event.data.name === 'gumroad_overlay_close') {
+                    console.log('Gumroad overlay closed');
+                }
+            });
+        }
+
+        // Alternative: Use Gumroad's global callback (if they complete purchase)
+        window.GumroadOverlayCallback = function() {
+            // This fires after successful purchase
+            celebratePurchase();
+            trackConversion();
+        };
+
+        // Confetti celebration function
+        function celebratePurchase() {
+            // Fire confetti
+            const duration = 3 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+
+                // Violet and orange theme
+                confetti({
+                    ...defaults,
+                    particleCount,
+                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+                    colors: ['#7C3AED', '#F97316', '#FFFFFF']
+                });
+                confetti({
+                    ...defaults,
+                    particleCount,
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+                    colors: ['#7C3AED', '#F97316', '#FFFFFF']
+                });
+            }, 250);
+
+            // Show success message
+            setTimeout(() => {
+                alert('🎉 Welcome to AutoForge, Founding Member! Check your email for next steps.');
+            }, 1500);
+        }
+
+        // Track conversion (integrate with your analytics)
+        function trackConversion() {
+            // Google Analytics 4 example
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'purchase', {
+                    currency: 'USD',
+                    value: 299,
+                    items: [{
+                        item_id: 'autoforge-lifetime',
+                        item_name: 'AutoForge Lifetime Access',
+                        price: 299,
+                        quantity: 1
+                    }]
+                });
+            }
+
+            // Send to your backend for tracking
+            fetch('/api/track-purchase', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    product: 'autoforge-lifetime',
+                    price: 299,
+                    timestamp: new Date().toISOString()
+                })
+            }).catch(err => console.log('Tracking error:', err));
+
+            console.log('✅ Conversion tracked successfully');
+        }
+
+        // Enhanced click tracking for different CTAs
+        document.querySelectorAll('.gumroad-cta-main').forEach(btn => {
+            btn.addEventListener('click', () => {
+                console.log('📊 Main CTA clicked');
+                // Track main CTA separately
+            });
+        });
+
+        document.querySelectorAll('.gumroad-cta-pricing').forEach(btn => {
+            btn.addEventListener('click', () => {
+                console.log('📊 Pricing section CTA clicked');
+                // Track pricing CTA separately
+            });
         });
     </script>
 </body>
