@@ -3,13 +3,29 @@ import { JWT } from 'google-auth-library';
 import nodemailer from 'nodemailer';
 
 export default async function handler(req, res) {
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const { email } = req.body;
 
-  if (!email || !email.includes('@')) {
+  // Enhanced email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
     return res.status(400).json({ error: 'Invalid email address' });
   }
 
@@ -28,10 +44,32 @@ export default async function handler(req, res) {
     
     await sheet.addRow({ 
       Email: email, 
-      Date: new Date().toLocaleString() 
+      Date: new Date().toLocaleString(),
+      Source: 'Waitlist'
     });
 
-    // 2. Send "Visual" Confirmation Email
+    // 2. Optional: Add to MailerLite (if you want to use it)
+    
+    const mailerliteResponse = await fetch('https://api.mailerlite.com/api/v2/groups/YOUR_GROUP_ID/subscribers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-MailerLite-ApiKey': process.env.MAILERLITE_API_KEY
+      },
+      body: JSON.stringify({
+        email: email,
+        fields: {
+          signup_date: new Date().toISOString()
+        }
+      })
+    });
+
+    if (!mailerliteResponse.ok) {
+      console.error('MailerLite error:', await mailerliteResponse.text());
+    }
+  
+
+    // 3. Send "Visual" Confirmation Email
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -117,7 +155,7 @@ export default async function handler(req, res) {
                   <tr>
                     <td style="background-color: #000; padding: 20px; text-align: center; font-family: sans-serif; font-size: 10px; color: #444; border-top: 1px solid #222;">
                       SECURE TRANSMISSION // AUTOFORGE INC.<br>
-                      No Action Required.
+                      No Action Required. 100% Refundable Until Launch.
                     </td>
                   </tr>
 
@@ -132,10 +170,16 @@ export default async function handler(req, res) {
       `,
     });
 
-    return res.status(200).json({ success: true });
+    return res.status(200).json({ 
+      success: true,
+      message: 'Successfully added to waitlist'
+    });
 
   } catch (error) {
     console.error('Error:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ 
+      error: 'Internal Server Error',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 }

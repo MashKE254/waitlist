@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://gumroad.com/js/gumroad.js"></script>
 
     <script>
         tailwind.config = {
@@ -21,17 +22,15 @@
                     },
                     colors: {
                         forge: {
-                            black: '#030005', // Deepest possible black
+                            black: '#030005',
                             panel: '#0A0A0C',
                             border: '#1F1F22',
-                            accent: '#7C3AED', // Violet
-                            fire: '#F97316'    // Orange
+                            accent: '#7C3AED',
+                            fire: '#F97316'
                         }
                     },
                     animation: {
                         'aurora': 'aurora 20s linear infinite',
-                        'tilt': 'tilt 10s infinite linear',
-                        'spotlight': 'spotlight 2s ease .75s 1 forwards',
                         'shimmer': 'shimmer 2s linear infinite',
                     },
                     keyframes: {
@@ -49,7 +48,6 @@
         }
     </script>
     <style>
-        /* CORE AESTHETICS */
         body {
             background-color: #030005;
             color: #e2e8f0;
@@ -57,7 +55,6 @@
             cursor: default;
         }
 
-        /* NOISE TEXTURE - The secret to "expensive" design */
         .noise-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -67,7 +64,6 @@
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
 
-        /* MOUSE TRACKING SPOTLIGHT CARD */
         .spotlight-group {
             --mouse-x: 0px;
             --mouse-y: 0px;
@@ -81,7 +77,6 @@
             overflow: hidden;
         }
 
-        /* The glowing border following the mouse */
         .spotlight-card::before {
             content: "";
             position: absolute;
@@ -107,7 +102,6 @@
             opacity: 1;
         }
 
-        /* Inner glow following mouse */
         .spotlight-card::after {
             content: "";
             position: absolute;
@@ -123,22 +117,12 @@
         }
         .spotlight-group:hover .spotlight-card::after { opacity: 1; }
 
-        /* TEXT GRADIENTS */
-        .text-glow {
-            text-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
-        }
-        .gradient-text-primary {
-            background: linear-gradient(to right, #ffffff 20%, #94a3b8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
         .gradient-text-accent {
             background: linear-gradient(to right, #a78bfa, #f97316);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        /* UTILITIES */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .glass-nav {
             background: rgba(3, 0, 5, 0.7);
@@ -146,7 +130,6 @@
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         
-        /* SHIMMER BUTTON */
         .btn-shimmer {
             background: linear-gradient(110deg, #000103 45%, #1e2631 55%, #000103);
             background-size: 200% 100%;
@@ -183,7 +166,7 @@
     <header class="relative pt-32 pb-20 px-4 z-10 overflow-hidden">
         <div class="container mx-auto max-w-5xl text-center relative">
             
-            <div class="inline-flex items-center justify-center px-4 py-1.5 mb-8 border border-violet-500/30 rounded-full bg-violet-500/5 backdrop-blur-sm animate-fade-in-up">
+            <div class="inline-flex items-center justify-center px-4 py-1.5 mb-8 border border-violet-500/30 rounded-full bg-violet-500/5 backdrop-blur-sm">
                 <span class="text-[11px] font-mono text-violet-300 font-medium tracking-wide uppercase">
                     <i class="fa-solid fa-sparkles mr-2 text-orange-400"></i> The Industrial Revolution for SaaS
                 </span>
@@ -201,7 +184,7 @@
                 Describe any tool in plain English. AutoForge builds it, hosts it, and handles the billing. <span class="text-white">Zero code. Zero setup. Zero excuses.</span>
             </p>
 
-            <div class="max-w-md mx-auto relative group z-20" id="waitlist-section">
+            <div class="max-w-md mx-auto relative group z-20 mb-6">
                 <div class="absolute -inset-0.5 bg-gradient-to-r from-violet-600 to-orange-600 rounded-lg blur opacity-30 group-hover:opacity-75 transition duration-1000"></div>
                 
                 <form id="waitlistForm" class="relative flex items-center bg-black rounded-lg border border-white/10 p-2 shadow-2xl">
@@ -210,14 +193,17 @@
                     </div>
                     <input type="email" id="emailInput" required placeholder="email@founder.com" class="bg-transparent w-full p-2 text-white placeholder-gray-600 focus:outline-none font-mono text-sm">
                     <button type="submit" id="submitBtn" class="bg-white text-black px-6 py-2.5 rounded font-bold text-sm hover:bg-gray-200 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.3)] disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span>Reserve Spot</span>
+                        <span>Join Waitlist</span>
                     </button>
                 </form>
                 
                 <div id="successMessage" class="hidden relative bg-black rounded-lg border border-green-500/30 p-4 shadow-2xl text-center">
-                    <p class="text-green-400 font-mono text-sm">
-                        <i class="fa-solid fa-check-circle mr-2"></i>Access Reserved. Check your inbox.
+                    <p class="text-green-400 font-mono text-sm mb-3">
+                        <i class="fa-solid fa-check-circle mr-2"></i>You're on the list! Check your inbox.
                     </p>
+                    <a href="https://autoforgeworld.gumroad.com/l/naahh" class="gumroad-button inline-block bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all transform hover:scale-105">
+                        <i class="fa-solid fa-crown mr-2"></i>Claim Lifetime Access ($299)
+                    </a>
                 </div>
 
                 <div id="errorMessage" class="hidden mt-2 text-center">
@@ -226,10 +212,21 @@
                     </p>
                 </div>
 
-                <div class="mt-4 flex items-center justify-center gap-3 text-xs text-gray-500 font-mono">
+                <div id="waitlistInfo" class="mt-4 flex items-center justify-center gap-3 text-xs text-gray-500 font-mono">
                     <span class="flex items-center gap-1"><i class="fa-solid fa-check text-green-500"></i> Lifetime Deal</span>
                     <span class="flex items-center gap-1"><i class="fa-solid fa-check text-green-500"></i> March 2026 Launch</span>
                 </div>
+            </div>
+
+            <!-- Direct Purchase Option -->
+            <div class="max-w-md mx-auto text-center">
+                <p class="text-sm text-gray-400 mb-3">Already decided? Skip the waitlist:</p>
+                <a href="https://autoforgeworld.gumroad.com/l/naahh" class="gumroad-button inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-orange-600 text-white px-8 py-3 rounded-lg font-bold text-sm hover:opacity-90 transition-all transform hover:scale-105 shadow-[0_0_30px_rgba(124,58,237,0.4)]">
+                    <i class="fa-solid fa-bolt"></i>
+                    Secure Lifetime Access Now - $299
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+                <p class="text-xs text-gray-500 mt-2 font-mono">⚡ Limited to 412 founding members</p>
             </div>
 
             <div class="mt-20 relative max-w-4xl mx-auto perspective-1000 group">
@@ -284,7 +281,7 @@
         <div class="container mx-auto px-4 max-w-6xl">
             <div class="mb-16 md:flex md:justify-between md:items-end">
                 <h2 class="text-4xl font-bold tracking-tight text-white max-w-xl">
-                    The 99% of AI tools die because of <span class="text-gray-500 line-through">code</span> infrastructure.
+                    99% of AI tools die because of <span class="text-gray-500 line-through">code</span> infrastructure.
                 </h2>
                 <p class="text-right text-gray-400 font-mono text-sm mt-4 md:mt-0">
                     // SYSTEM ARCHITECTURE<br>
@@ -340,7 +337,7 @@
             <p class="text-gray-500 font-mono text-xs">LIVE_DATA_FEED :: UPDATED_JUST_NOW</p>
         </div>
         
-        <div class="flex gap-6 animate-[shimmer_60s_linear_infinite] px-4 w-max hover:pause-animation">
+        <div class="flex gap-6 animate-[shimmer_60s_linear_infinite] px-4 w-max">
             <div class="w-80 bg-[#0A0A0C] border border-white/10 rounded-xl p-4 flex items-center gap-4 hover:border-violet-500/30 transition duration-300">
                 <div class="w-12 h-12 bg-gray-800 rounded bg-[url('https://i.pravatar.cc/100?img=1')] bg-cover"></div>
                 <div>
@@ -419,9 +416,9 @@
                             </li>
                         </ul>
 
-                        <button class="btn-shimmer w-full py-4 rounded-lg text-white font-bold tracking-wide shadow-lg border border-white/10 hover:border-violet-500/50 transition-all transform hover:scale-[1.02]">
+                        <a href="https://autoforgeworld.gumroad.com/l/naahh" class="gumroad-button block btn-shimmer w-full py-4 rounded-lg text-white font-bold tracking-wide shadow-lg border border-white/10 hover:border-violet-500/50 transition-all transform hover:scale-[1.02] text-center">
                             Claim Lifetime Access
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -459,25 +456,24 @@
             }
         }
 
-        // Form Handling Logic
+        // Form Handling
         const form = document.getElementById('waitlistForm');
         const submitBtn = document.getElementById('submitBtn');
         const btnText = submitBtn.querySelector('span');
         const successMsg = document.getElementById('successMessage');
         const errorMsg = document.getElementById('errorMessage');
         const errorText = document.getElementById('errorText');
+        const waitlistInfo = document.getElementById('waitlistInfo');
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('emailInput').value;
             
-            // Loading State
             submitBtn.disabled = true;
             btnText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
             errorMsg.classList.add('hidden');
 
             try {
-                // Send data to Vercel Serverless Function
                 const res = await fetch('/api/submit', {
                     method: 'POST',
                     headers: {
@@ -489,17 +485,15 @@
                 const data = await res.json();
 
                 if (res.ok) {
-                    // Success State
                     form.classList.add('hidden');
+                    waitlistInfo.classList.add('hidden');
                     successMsg.classList.remove('hidden');
                 } else {
-                    // Server Error State
                     throw new Error(data.error || 'Something went wrong');
                 }
             } catch (err) {
-                // Error State
                 submitBtn.disabled = false;
-                btnText.textContent = 'Reserve Spot';
+                btnText.textContent = 'Join Waitlist';
                 errorText.textContent = err.message;
                 errorMsg.classList.remove('hidden');
             }
