@@ -227,7 +227,8 @@
                         <i class="fa-solid fa-check-circle mr-2"></i>You're on the list! Check your inbox.
                     </p>
                     <a href="https://autoforgeworld.gumroad.com/l/naahh"
-                       class="gumroad-button inline-block bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all transform hover:scale-105">
+                       class="gumroad-button inline-block bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all transform hover:scale-105"
+                       data-gumroad-overlay-checkout="true">
                         <i class="fa-solid fa-crown mr-2"></i><span>Claim Lifetime Access ($299)</span>
                     </a>
                 </div>
@@ -248,7 +249,8 @@
             <div class="max-w-md mx-auto text-center">
                 <p class="text-sm text-gray-400 mb-3">Already decided? Skip the waitlist:</p>
                 <a href="https://autoforgeworld.gumroad.com/l/naahh"
-                   class="gumroad-button gumroad-cta-main inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-orange-600 text-white px-8 py-3 rounded-lg font-bold text-sm hover:opacity-90 transition-all transform hover:scale-105 shadow-[0_0_30px_rgba(124,58,237,0.4)]">
+                   class="gumroad-button gumroad-cta-main inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-orange-600 text-white px-8 py-3 rounded-lg font-bold text-sm hover:opacity-90 transition-all transform hover:scale-105 shadow-[0_0_30px_rgba(124,58,237,0.4)]"
+                   data-gumroad-overlay-checkout="true">
                     <i class="fa-solid fa-bolt"></i>
                     <span>Secure Lifetime Access Now - $299</span>
                     <i class="fa-solid fa-arrow-right"></i>
@@ -444,7 +446,8 @@
                         </ul>
 
                         <a href="https://autoforgeworld.gumroad.com/l/naahh"
-                           class="gumroad-button gumroad-cta-pricing block btn-shimmer w-full py-4 rounded-lg text-white font-bold tracking-wide shadow-lg border border-white/10 hover:border-violet-500/50 transition-all transform hover:scale-[1.02] text-center">
+                           class="gumroad-button gumroad-cta-pricing block btn-shimmer w-full py-4 rounded-lg text-white font-bold tracking-wide shadow-lg border border-white/10 hover:border-violet-500/50 transition-all transform hover:scale-[1.02] text-center"
+                           data-gumroad-overlay-checkout="true">
                             <span>Claim Lifetime Access</span>
                         </a>
                     </div>
@@ -538,14 +541,13 @@
             trackConversion();
         };
 
-        // Initialize Gumroad overlay on all buttons
+        // Add loading states and track clicks on Gumroad buttons
         document.addEventListener('DOMContentLoaded', () => {
             const gumroadButtons = document.querySelectorAll('.gumroad-button');
 
             gumroadButtons.forEach(button => {
                 button.addEventListener('click', function(e) {
-                    e.preventDefault(); // Prevent default link behavior
-
+                    // Don't prevent default - let Gumroad handle the overlay
                     const span = this.querySelector('span');
                     let originalText = '';
 
@@ -554,24 +556,9 @@
                         span.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Loading checkout...';
                     }
 
-                    // Extract product ID from URL (naahh from the link)
-                    const productUrl = this.getAttribute('href');
-
-                    // Open Gumroad overlay programmatically
-                    if (window.GumroadOverlay) {
-                        window.GumroadOverlay.open({
-                            url: productUrl,
-                            wanted: true
-                        });
-                    } else {
-                        // Fallback: If overlay isn't available, open in new tab
-                        console.warn('Gumroad overlay not available, opening in new window');
-                        window.open(productUrl, '_blank');
-                    }
-
-                    // Reset button text after overlay opens
+                    // Reset button text after a short delay
                     setTimeout(() => {
-                        if (span) {
+                        if (span && originalText) {
                             span.textContent = originalText;
                         }
                     }, 2000);
